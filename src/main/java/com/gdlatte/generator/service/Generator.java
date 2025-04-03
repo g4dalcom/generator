@@ -10,6 +10,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Stream;
 
 @Slf4j
@@ -17,28 +18,22 @@ import java.util.stream.Stream;
 public class Generator {
     //
     private static final List<String> SKIP_DIRS = List.of(".gradle", ".idea", ".studio", "build", "node_modules", ".storybook", "storybook", "storybook-static", "public");
-    private static final String SOURCE_DIR = "E:\\project\\nextree\\garden\\edge-wise\\edge-wise-app";
-    private static final String OBSIDIAN_BASE_DIR = "E:\\dev_vault\\Code\\projects\\";
 
-    public static void main(String[] args) {
-        //
-        generate();
-    }
-
-    public static void generate() {
-        //
-        String[] parts = SOURCE_DIR.split("\\\\");
+    public static void generate(String sourceDirStr, String obsidianBaseDir, Consumer<String> logCallback) {
+        String[] parts = sourceDirStr.split("\\\\");
         String projectName = parts[parts.length - 1];
-        String obsidianFolder = OBSIDIAN_BASE_DIR + projectName;
+        Path sourceDir = Paths.get(sourceDirStr);
+        Path obsidianDir = Paths.get(obsidianBaseDir, projectName);
 
         try {
-            processFolder(Paths.get(SOURCE_DIR), Paths.get(obsidianFolder));
+            processFolder(sourceDir, obsidianDir, logCallback);
         } catch (IOException e) {
+            logCallback.accept("처리 중 오류 발생: " + e.getMessage());
             throw new RuntimeException(e);
         }
     }
 
-    public static void processFolder(Path sourceDir, Path obsidianDir) throws IOException {
+    public static void processFolder(Path sourceDir, Path obsidianDir , Consumer<String> logCallback) throws IOException {
         //
         deleteFolder(obsidianDir);
 
@@ -59,7 +54,7 @@ public class Generator {
                             Files.createDirectories(parentDir);
                         }
 
-                        copyFileToObsidian(file, obsidianFile, fileExtension);
+                        copyFileToObsidian(file, obsidianFile, fileExtension , logCallback);
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -68,6 +63,7 @@ public class Generator {
                 public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
                     if (SKIP_DIRS.contains(dir.getFileName().toString().toLowerCase())) {
                         System.out.println("skip dir: " + dir);
+                        logCallback.accept(">>skip dir: " + dir);
                         return FileVisitResult.SKIP_SUBTREE;
                     }
                     return FileVisitResult.CONTINUE;
@@ -75,10 +71,11 @@ public class Generator {
             });
         } else {
             System.out.println("wrong dir");
+            logCallback.accept("경로 오류: " + sourceDir);
         }
     }
 
-    private static void copyFileToObsidian(Path sourceFile, Path obsidianFile, FileExtension fileExtension) throws IOException {
+    private static void copyFileToObsidian(Path sourceFile, Path obsidianFile, FileExtension fileExtension , Consumer<String> logCallback) throws IOException {
         //
         List<String> content = Files.readAllLines(sourceFile);
         String identifier = FileExtension.getLanguageIdentifier(fileExtension);
@@ -92,6 +89,7 @@ public class Generator {
         }
 
         System.out.println("success: " + obsidianFile);
+        logCallback.accept("copied: " + obsidianFile);
     }
 
     private static String getFileExtensionFromFileName(String fileName) {

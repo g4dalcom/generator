@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<VBox spacing="10" xmlns:fx="http://javafx.com/fxml" alignment="CENTER" xmlns="http://javafx.com/javafx"
+      fx:controller="com.gdlatte.generator.controller.MainController">
+    <HBox spacing="10">
+        <Label text="Source Directory:" />
+        <TextField fx:id="sourceDirField" prefWidth="300" />
+        <Button text="Browse" onAction="#onBrowseSourceDir" />
+    </HBox>
+    <HBox spacing="10">
+        <Label text="Obsidian Base Directory:" />
+        <TextField fx:id="obsidianBaseDirField" prefWidth="300" />
+        <Button text="Browse" onAction="#onBrowseObsidianDir" />
+    </HBox>
+    <Button text="Generate" onAction="#onGenerateClicked" />
+    <TextArea fx:id="resultArea" prefHeight="200" prefWidth="500" editable="false" />
+</VBox>
