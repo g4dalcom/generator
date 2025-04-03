@@ -26,7 +26,8 @@ public class FxApp extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        var loader = new FXMLLoader(getClass().getResource("/view/main.fxml"));
+        FXMLLoader loader = new FXMLLoader();
+        loader.setLocation(getClass().getClassLoader().getResource("view/main.fxml"));
         loader.setControllerFactory(context::getBean);
         Parent root = null;
         try {
