@@ -40,7 +40,7 @@ public class FxApp extends Application {
             throw new RuntimeException(e);
         }
 
-        Scene scene = new Scene(root, 600, 200);
+        Scene scene = new Scene(root, 600, 400);
         primaryStage.setTitle("Generator UI");
         primaryStage.setScene(scene);
         primaryStage.show();

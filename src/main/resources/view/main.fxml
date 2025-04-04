@@ -16,5 +16,7 @@
         <Button text="Browse" onAction="#onBrowseObsidianDir" />
     </HBox>
     <Button text="Generate" onAction="#onGenerateClicked" />
+
+    <ProgressBar fx:id="progressBar" prefWidth="500" progress="0.0" visible="false" managed="false" />
     <TextArea fx:id="resultArea" prefHeight="200" prefWidth="500" editable="false" />
 </VBox>
