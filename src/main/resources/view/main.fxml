@@ -18,5 +18,6 @@
     <Button text="Generate" onAction="#onGenerateClicked" />
 
     <ProgressBar fx:id="progressBar" prefWidth="500" progress="0.0" visible="false" managed="false" />
+    <Label fx:id="progressLabel" text="진행률: 0%" visible="false" />
     <TextArea fx:id="resultArea" prefHeight="200" prefWidth="500" editable="false" />
 </VBox>

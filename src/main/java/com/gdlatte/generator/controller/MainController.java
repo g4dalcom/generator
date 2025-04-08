@@ -3,6 +3,7 @@ package com.gdlatte.generator.controller;
 import com.gdlatte.generator.service.Generator;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.control.ProgressBar;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
@@ -23,6 +24,7 @@ public class MainController{
     @FXML private TextField obsidianBaseDirField;
     @FXML private TextArea resultArea;
     @FXML private ProgressBar progressBar;
+    @FXML private Label progressLabel;
 
     private final Generator generator;
 
@@ -35,42 +37,39 @@ public class MainController{
             progressBar.setVisible(true);
             progressBar.setManaged(true);
             progressBar.setProgress(0);
+            progressLabel.setVisible(true);
         });
 
         new Thread(() -> {
             try {
-                final double[] lastProgress = {0.0};
-
                 generator.generate(
                         sourceDir,
                         baseDir,
                         this::appendResult,
                         (current, total) -> {
-                            double progress = (total == 0.0) ? 0.0 : current / total;
-                            double diff = progress - lastProgress[0];
+                            double progress = (total == 0) ? 0 : current / total;
+                            System.out.println("progress: " + progress);
+                            System.out.println("total: " + total);
 
-                            System.out.printf("progress: %.6f (%.2f%%) ~~~~~~~~~~~~~~~~~~~~~~~~%n", progress, progress * 100);
-
-                            if (diff >= 0.005) {
-                                lastProgress[0] = progress;
-                                Platform.runLater(() -> {
-                                    try {
-                                        if (progressBar != null) {
-                                            progressBar.setProgress(progress);
-                                        } else {
-                                            System.out.println("ProgressBar가 null인 상태입니다.");
-                                        }
-                                    } catch (Exception e) {
-                                        appendResult("ProgressBar 업데이트 중 예외 발생: " + e.getMessage());
+                            Platform.runLater(() -> {
+                                try {
+                                    if (progressBar != null) {
+                                        progressBar.setProgress(progress);
+                                        progressLabel.setText(String.format("진행률: %.2f%%", progress * 100));
+                                    } else {
+                                        System.out.println("ProgressBar가 null인 상태입니다.");
                                     }
-                                });
-                            }
-                        });
+                                } catch (Exception e) {
+                                    appendResult("ProgressBar 업데이트 중 예외 발생: " + e.getMessage());
+                                }
+                            });
 
+                        });
                 Platform.runLater(() -> {
                     appendResult("완료되었습니다~!");
                     progressBar.setVisible(false);
                     progressBar.setManaged(false);
+                    progressLabel.setVisible(false);
                 });
 
             } catch (Exception e) {
@@ -78,6 +77,7 @@ public class MainController{
                     appendResult("오류 발생: " + e.getMessage());
                     progressBar.setVisible(false);
                     progressBar.setManaged(false);
+                    progressLabel.setVisible(false);
                 });
             }
         }).start();

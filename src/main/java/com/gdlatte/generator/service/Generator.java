@@ -1,6 +1,7 @@
 package com.gdlatte.generator.service;
 
 import com.gdlatte.generator.entity.vo.FileExtension;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
@@ -10,6 +11,7 @@ import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Stream;
@@ -20,6 +22,13 @@ public class Generator {
     //
     private static final List<String> SKIP_DIRS = List.of(".gradle", ".idea", ".studio", "build", "node_modules", ".storybook", "storybook", "storybook-static", "public");
 
+    private long totalCount = 0L;
+
+    @PostConstruct
+    public void init() {
+
+    }
+
     public void generate(String sourceDirStr, String obsidianBaseDir, Consumer<String> logCallback,BiConsumer<Double,Double> progressCallback) {
         String[] parts = sourceDirStr.split("\\\\");
         String projectName = parts[parts.length - 1];
@@ -27,12 +36,14 @@ public class Generator {
         Path obsidianDir = Paths.get(obsidianBaseDir, projectName);
 
         try {
-            long totalCount = Files.walk(sourceDir)
+            totalCount = Files.walk(sourceDir)
                     .filter(Files :: isRegularFile)
+                    .filter(path -> !isInSkippedDir(path))
                     .filter(path -> FileExtension.hasValidExtension(path.toString()))
                     .count();
-            long[] currentCount = {0};
+        log.info("Total count: {}", totalCount);
 
+            long[] currentCount = {0};
             processFolder(sourceDir, obsidianDir, logCallback , ()->{
                 currentCount[0]++;
                 progressCallback.accept((double)currentCount[0] , (double)totalCount);
@@ -66,6 +77,7 @@ public class Generator {
 
                         copyFileToObsidian(file, obsidianFile, fileExtension , logCallback);
                         onFileProcessed.run();
+                        log.info("복사됨 ! -------------");
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -139,5 +151,14 @@ public class Generator {
                 throw new RuntimeException(e);
             }
         }
+    }
+
+    private boolean isInSkippedDir(Path path) {
+        for (Path part : path) {
+            if (SKIP_DIRS.contains(part.toString().toLowerCase())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
